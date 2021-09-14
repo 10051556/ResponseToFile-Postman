@@ -1,10 +1,16 @@
+const { readFile } = require('fs/promises');
+const dataTables = require('')
+
 const express = require('express'),
   app = express(),
   fs = require('fs'),
   shell = require('shelljs'),
+  $ = require('jquery'),
+  dt = require('datatables.net')(),
+  buttons = require('datatables.net-buttons')();
 
-  // Modify the folder path in which responses need to be stored
-  folderPath = './Responses/',
+// Modify the folder path in which responses need to be stored
+folderPath = './Responses/',
   defaultFileExtension = 'json', // Change the default file extension
   bodyParser = require('body-parser'),
   DEFAULT_MODE = 'appendFile',
@@ -19,25 +25,16 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.get('/', (req, res) => res.send('Hello, I write data to file. Send them requests!'));
 
-
 app.post('/write', (req, res) => {
-  let extension = req.body.fileExtension || defaultFileExtension;
-  let fsMode = DEFAULT_MODE;
-  let uniqueIdentifier = req.body.uniqueIdentifier ? typeof req.body.niqueIdentifier === 'boolean' ? Date.now() : req.body.uniqueIdentifier : false;
-  let filename = `output`;
-  // filename = `${req.body.requestName}${uniqueIdentifier || ''}`;
-  let dataCount = Object.values(res).length;
-  console.log(dataCount);
+  let extension = req.body.fileExtension || defaultFileExtension,
+    fsMode = req.body.mode || DEFAULT_MODE,
+    uniqueIdentifier = req.body.uniqueIdentifier ? typeof req.body.uniqueIdentifier === 'boolean' ? Date.now() : req.body.uniqueIdentifier : false,
+    filename = `output`,
+    // filename = `${req.body.requestName}${uniqueIdentifier || ''}`,
+    filePath = `${path.join(folderPath, filename)}.${extension}`,
+    options = req.body.options || undefined;
 
-  let fileHead = dataCount < 1 ? "[" : "";
-  let fileTail = dataCount == 0 ? "]" : ",";
-  let fileData = "";
-  fileData += req.body.responseData;
-  let filePath = `${path.join(folderPath, filename)}.${extension}`;
-
-
-
-  fs[fsMode](filePath, fileHead + fileData + fileTail, (err) => {
+  fs[fsMode](filePath, req.body.responseData + ",", (err) => {
     if (err) {
       console.log(err);
       res.send('Error');
@@ -47,9 +44,13 @@ app.post('/write', (req, res) => {
     }
   });
 
+
+
+
 });
 
 app.listen(3000, () => {
   console.log('ResponsesToFile App is listening now! Send them requests my way!');
   console.log(`Data is being stored at location: ${path.join(process.cwd(), folderPath)}`);
 });
+
