@@ -1,13 +1,9 @@
 const { readFile } = require('fs/promises');
-const dataTables = require('')
 
 const express = require('express'),
   app = express(),
   fs = require('fs'),
-  shell = require('shelljs'),
-  $ = require('jquery'),
-  dt = require('datatables.net')(),
-  buttons = require('datatables.net-buttons')();
+  shell = require('shelljs');;
 
 // Modify the folder path in which responses need to be stored
 folderPath = './Responses/',
@@ -25,7 +21,9 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.get('/', (req, res) => res.send('Hello, I write data to file. Send them requests!'));
 
+let fileData = "["
 app.post('/write', (req, res) => {
+  console.log("running")
   let extension = req.body.fileExtension || defaultFileExtension,
     fsMode = req.body.mode || DEFAULT_MODE,
     uniqueIdentifier = req.body.uniqueIdentifier ? typeof req.body.uniqueIdentifier === 'boolean' ? Date.now() : req.body.uniqueIdentifier : false,
@@ -33,8 +31,11 @@ app.post('/write', (req, res) => {
     // filename = `${req.body.requestName}${uniqueIdentifier || ''}`,
     filePath = `${path.join(folderPath, filename)}.${extension}`,
     options = req.body.options || undefined;
+  fileData += req.body.responseData;
+  fileData += ","
+  // file.push(fileData)
 
-  fs[fsMode](filePath, req.body.responseData + ",", (err) => {
+  fs.appendFile("./Responses\/output.json", fileData, (err) => {
     if (err) {
       console.log(err);
       res.send('Error');
@@ -44,10 +45,8 @@ app.post('/write', (req, res) => {
     }
   });
 
+})
 
-
-
-});
 
 app.listen(3000, () => {
   console.log('ResponsesToFile App is listening now! Send them requests my way!');
